@@ -472,11 +472,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Helper function to escape HTML special characters
+  // Helper function to escape HTML special characters for safe insertion into HTML
   function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, (char) => map[char]);
   }
 
   // Function to render a single activity card
