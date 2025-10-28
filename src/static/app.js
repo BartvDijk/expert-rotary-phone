@@ -526,6 +526,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Helper function to escape HTML special characters for safe insertion into HTML
+  function escapeHtml(text) {
+    const map = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, (char) => map[char]);
+  }
+
   // Function to render a single activity card
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
@@ -594,6 +606,21 @@ document.addEventListener("DOMContentLoaded", () => {
         <span class="tooltip-text">Regular meetings at this time throughout the semester</span>
       </p>
       ${capacityIndicator}
+      <div class="social-sharing">
+        <span class="share-label">Share:</span>
+        <button class="share-button share-facebook tooltip" data-activity="${escapeHtml(name)}" data-description="${escapeHtml(details.description)}" title="Share on Facebook">
+          <span class="share-icon">📘</span>
+          <span class="tooltip-text">Share on Facebook</span>
+        </button>
+        <button class="share-button share-twitter tooltip" data-activity="${escapeHtml(name)}" data-description="${escapeHtml(details.description)}" title="Share on Twitter">
+          <span class="share-icon">🐦</span>
+          <span class="tooltip-text">Share on Twitter</span>
+        </button>
+        <button class="share-button share-email tooltip" data-activity="${escapeHtml(name)}" data-description="${escapeHtml(details.description)}" title="Share via Email">
+          <span class="share-icon">✉️</span>
+          <span class="tooltip-text">Share via Email</span>
+        </button>
+      </div>
       <div class="participants-list">
         <h5>Current Participants:</h5>
         <ul>
@@ -601,7 +628,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .map(
               (email) => `
             <li>
-              ${email}
+              <span class="participant-icon">👤</span> ${email}
               ${
                 currentUser
                   ? `
@@ -641,6 +668,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const deleteButtons = activityCard.querySelectorAll(".delete-participant");
     deleteButtons.forEach((button) => {
       button.addEventListener("click", handleUnregister);
+    });
+
+    // Add click handlers for share buttons
+    const shareButtons = activityCard.querySelectorAll(".share-button");
+    shareButtons.forEach((button) => {
+      button.addEventListener("click", handleShare);
     });
 
     // Add click handler for register button (only when authenticated)
@@ -829,6 +862,32 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 300);
       }
     });
+  }
+
+  // Handle social sharing
+  function handleShare(event) {
+    const button = event.currentTarget;
+    const activityName = button.dataset.activity;
+    const description = button.dataset.description;
+    
+    // Create a shareable URL (current page URL)
+    const shareUrl = window.location.href;
+    const shareText = `Check out ${activityName} at Mergington High School! ${description}`;
+    
+    if (button.classList.contains("share-facebook")) {
+      // Share on Facebook
+      const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
+      window.open(facebookUrl, '_blank', 'width=600,height=400');
+    } else if (button.classList.contains("share-twitter")) {
+      // Share on Twitter (X)
+      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+      window.open(twitterUrl, '_blank', 'width=600,height=400');
+    } else if (button.classList.contains("share-email")) {
+      // Share via Email
+      const subject = `Check out ${activityName} at Mergington High School`;
+      const body = `${shareText}\n\nLearn more: ${shareUrl}`;
+      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    }
   }
 
   // Handle unregistration with confirmation
